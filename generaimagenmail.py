@@ -30,8 +30,9 @@ def procesar_pendientes():
 
         with sync_playwright() as p:
             browser = p.chromium.launch()
-            # device_scale_factor alto = captura más nítida (equivalente a pantalla retina)
-            page = browser.new_page(viewport={"width": 1024, "height": 800}, device_scale_factor=2)
+            # device_scale_factor no cambia el layout (mismo ancho/alto en CSS),
+            # solo aumenta la densidad de píxeles de la captura -> más nitidez
+            page = browser.new_page(device_scale_factor=2)
 
             for row in registros:
                 reg_id = row[0]
@@ -39,18 +40,10 @@ def procesar_pendientes():
                 output_path = f"Z:/Ejecutables/salida/temp/{reg_id}.png"
 
                 try:
-
+                    
                     # Generar imagen
-                    page.set_content(html_content, wait_until="networkidle")
-
-                    # Medir el tamaño real del contenido renderizado
-                    ancho = page.evaluate("document.documentElement.scrollWidth")
-                    alto = page.evaluate("document.documentElement.scrollHeight")
-
-                    # Ajustar el viewport al tamaño exacto del contenido (tamaño dinámico)
-                    page.set_viewport_size({"width": ancho, "height": alto})
-
-                    page.screenshot(path=output_path)
+                    page.set_content(html_content)
+                    page.screenshot(path=output_path, full_page=True)
 
                     # 3. Marcar como procesado en la base de datos
                     cursor.execute("UPDATE mail SET generoImagen = 'S' WHERE nkey_mail = ?", reg_id)
