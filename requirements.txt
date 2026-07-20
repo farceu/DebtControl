@@ -1,3 +1,4 @@
 pyodbc
 playwright
 python-dotenv
+Pillow
